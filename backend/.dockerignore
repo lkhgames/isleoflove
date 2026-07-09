@@ -1,0 +1,7 @@
+node_modules
+dist
+features
+*.feature
+dev.db
+dev.db-journal
+.env

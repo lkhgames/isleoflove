@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id            String         @id @default(uuid())
+  displayName   String
+  createdAt     DateTime       @default(now())
+  relationships Relationship[]
+}
+
+model Islander {
+  id            String         @id @default(uuid())
+  name          String
+  bio           String
+  choices       Choice[]
+  relationships Relationship[]
+}
+
+model Episode {
+  id      String   @id @default(uuid())
+  number  Int      @unique
+  title   String
+  choices Choice[]
+}
+
+model Choice {
+  id                 String    @id @default(uuid())
+  episodeId          String
+  episode            Episode   @relation(fields: [episodeId], references: [id])
+  islanderId         String?
+  islander           Islander? @relation(fields: [islanderId], references: [id])
+  prompt             String
+  compatibilityDelta Int       @default(0)
+}
+
+model Relationship {
+  id            String   @id @default(uuid())
+  playerId      String
+  player        Player   @relation(fields: [playerId], references: [id])
+  islanderId    String
+  islander      Islander @relation(fields: [islanderId], references: [id])
+  compatibility Int      @default(0)
+  coupledUp     Boolean  @default(false)
+
+  @@unique([playerId, islanderId])
+}
