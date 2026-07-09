@@ -24,6 +24,7 @@ jobs:
         env:
           DATABASE_URL: file:./dev.db
       - run: npm run build
+      - run: npm run test:unit
       - run: npm run test:bdd
         env:
           DATABASE_URL: file:./dev.db
@@ -43,4 +44,5 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run build
+      - run: npm run test:unit
       - run: npm run test:e2e

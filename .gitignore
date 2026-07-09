@@ -29,3 +29,6 @@ npm-debug.log*
 .vscode/
 .DS_Store
 Thumbs.db
+
+# dev-workflow scratch artifacts (requirements/design docs, pipeline state)
+.claude/workflow/
