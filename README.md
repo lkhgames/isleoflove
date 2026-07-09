@@ -84,11 +84,36 @@ Open that URL in Chrome/Edge and look for the install icon in the address bar. S
 
 This is intentionally a thin vertical slice — enough domain, API, and tests to build on, not a finished game.
 
+## CI/CD
+
+[.github/workflows/ci.yml](.github/workflows/ci.yml) runs on every push and PR: a `backend` job (Prisma migrate, build, unit + BDD tests) and a `frontend` job (lint, build, unit + Playwright e2e tests). On a push to `master`, once both pass, `deploy-backend` and `deploy-frontend` jobs automatically ship to production:
+
+- **Backend** → [isle-of-love-api.fly.dev](https://isle-of-love-api.fly.dev) via `flyctl deploy`
+- **Frontend** → [isle-of-love.pages.dev](https://isle-of-love.pages.dev) via `wrangler pages deploy`
+
+Both deploy jobs run under a `production` GitHub Environment and need these repo secrets set (Settings → Secrets and variables → Actions, or Settings → Environments → production):
+
+| Secret | How to get it |
+| --- | --- |
+| `FLY_API_TOKEN` | `flyctl tokens create deploy -a isle-of-love-api` |
+| `CLOUDFLARE_API_TOKEN` | [dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens) → Create Token → Custom Token → **Account → Cloudflare Pages → Edit**. This is *not* the Account ID shown on the dashboard sidebar — the token is a separate, longer string shown once at creation. |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare dashboard sidebar |
+
+Add secrets from a terminal to avoid pasting issues in the GitHub web UI:
+
+```bash
+gh secret set FLY_API_TOKEN --body "<token>"
+gh secret set CLOUDFLARE_API_TOKEN --body "<token>"
+gh secret set CLOUDFLARE_ACCOUNT_ID --body "<id>"
+```
+
 ## Deployment (free hosting)
 
-Backend on [Fly.io](https://fly.io) (free allowance includes a persistent volume, so the existing SQLite setup works as-is), frontend on [Cloudflare Pages](https://pages.cloudflare.com/) (unlimited free bandwidth). Both CLIs are already installed by this scaffold; you just need to log in once with your own account — nobody else can do that step for you.
+Backend on [Fly.io](https://fly.io) (free allowance includes a persistent volume, so the existing SQLite setup works as-is), frontend on [Cloudflare Pages](https://pages.cloudflare.com/) (unlimited free bandwidth).
 
 ### One-time setup
+
+Only needed once, to create the Fly.io app/volume and log in each CLI locally (the GitHub Actions pipeline above handles ongoing deploys with its own tokens — this is for local/manual use):
 
 ```bash
 # Backend — log in, then create the app and its persistent volume
@@ -106,7 +131,9 @@ npx wrangler login
 
 If you're not near London, change `primary_region` in `backend/fly.toml` and the `--region` flag above to whichever [Fly.io region](https://fly.io/docs/reference/regions/) is closest to your players.
 
-### Deploying
+### Deploying manually
+
+Normally you don't need this — pushing to `master` auto-deploys via CI/CD. To deploy from your machine anyway (e.g. to test a change before pushing):
 
 ```bash
 cd backend && npm run deploy    # fly deploy — builds remotely, no local Docker needed
@@ -114,5 +141,3 @@ cd frontend && npm run deploy   # builds the PWA and pushes to Cloudflare Pages
 ```
 
 The frontend build is pinned to `https://isle-of-love-api.fly.dev` via `frontend/.env.production` (`VITE_API_BASE_URL`) — update that if you pick a different Fly app name.
-
-Re-run `npm run deploy` in either folder any time you want to ship changes; there's no CI/CD wiring yet, so deploys are manual until you want to add that.
