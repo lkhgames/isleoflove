@@ -91,12 +91,8 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
-      - name: Debug secret shape (no value printed)
-        run: |
-          echo "CLOUDFLARE_API_TOKEN length: ${#CLOUDFLARE_API_TOKEN}"
-          echo "CLOUDFLARE_ACCOUNT_ID length: ${#CLOUDFLARE_ACCOUNT_ID}"
-          if [[ "$CLOUDFLARE_API_TOKEN" =~ [[:space:]] ]]; then echo "TOKEN CONTAINS WHITESPACE/NEWLINE"; else echo "token has no whitespace"; fi
-          if [[ "$CLOUDFLARE_API_TOKEN" =~ ^[A-Za-z0-9_-]+$ ]]; then echo "token charset looks like a normal API token"; else echo "TOKEN HAS UNEXPECTED CHARACTERS"; fi
+      - name: Ensure Pages project exists
+        run: npx wrangler pages project create isle-of-love --production-branch master || true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
